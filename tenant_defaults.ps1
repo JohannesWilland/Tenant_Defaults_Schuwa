@@ -9,15 +9,11 @@
 
 Param
 (
-    #[Parameter(Mandatory = $true)]
-    #[switch]$ConfigurePreconsent,
-    #[Parameter(Mandatory = $true)]
-    #[string]$DisplayName,
     [Parameter(Mandatory = $false)]
     [string]$TenantName
 )
 
-# Needed modules will be loaded or installed
+######## Loading/Installing needed Modules #########
 
 # Check if the Azure AD PowerShell module has already been loaded.
 if ( ! ( Get-Module AzureAD ) ) {
@@ -79,6 +75,8 @@ if ( ! ( Get-Module MicrosoftTeams ) ) {
         Install-Module MicrosoftTeams
     }
 }
+
+############# Credentials and Login to the Tenant ################
 
 # Ask for credentials and the Url for sharepoint if not given as a parameter save them for the later connections
 if([string]::IsNullOrEmpty($TenantName)) {
