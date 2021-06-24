@@ -7,8 +7,6 @@
         Flag indicating whether or not the Azure AD application should be configured for preconsent.
 #>
 
-#added comment
-
 Param
 (
     #[Parameter(Mandatory = $true)]
@@ -85,7 +83,7 @@ if ( ! ( Get-Module MicrosoftTeams ) ) {
 # Ask for credentials and the Url for sharepoint if not given as a parameter save them for the later connections
 if([string]::IsNullOrEmpty($TenantName)) {
     Write-Host -ForegroundColor Green 'Please enter the tenant-name (the part between the "@" and the ".onmicrosoft.com"):'
-    $tenantName = Read-Host
+    $tenantName = Read-Host -Prompt "Tenant-Name"
 }
 
 Write-Host -ForegroundColor Green "Please enter the credentials for the global admin of the tenant..."
@@ -103,15 +101,27 @@ Connect-IPPSSession -Credential $cred
 ########### change timezone for sharepointonline ##############
 
 # Disable RichTextFormat (RTF) for the Exchange-Tenant
-Get-RemoteDomain | Set-RemoteDomain -TNEFEnabled $false
+function DisableRTF {
+    Get-RemoteDomain | Set-RemoteDomain -TNEFEnabled $false
+    Get-RemoteDomain -identity default | fl TNEFEnabled
+}
 
+# Set all Mailboxes to TimeZone W. Europe Standard
+function Set-MailboxRegionalConfigurationDE {
+    Get-Mailbox -RecipientTypeDetails UserMailbox -ResultSize Unlimited | Set-MailboxRegionalConfiguration -Language de-DE -DateFormat "dd.MM.yyyy" -TimeFormat HH:mm -TimeZone "W. Europe Standard Time" -LocalizeDefaultFolderName:$true
+    Get-Mailbox -RecipientTypeDetails SharedMailbox -ResultSize Unlimited | Set-MailboxRegionalConfiguration -Language de-DE -DateFormat "dd.MM.yyyy" -TimeFormat HH:mm -TimeZone "W. Europe Standard Time" -LocalizeDefaultFolderName:$true
+    Get-Mailbox –RecipientTypeDetails UserMailbox | Get-MailboxRegionalConfiguration
+    Get-Mailbox –RecipientTypeDetails SharedMailbox | Get-MailboxRegionalConfiguration
+}
 
+# Disable the FocusedInbox
+function DisableRelevantFunction {
+    Set-OrganizationConfig -FocusedInboxOn $false
+    Get-OrganizationConfig | fl *foc*
+}
 
-########## ################################
-
-Write-Host -ForegroundColor Green "If there is more to do, do it now. `r`nIf you are done type: .\Disconnect-All.ps1"
-
-<#
+# Disconnect and Exit
+function Disconnect {
     Disconnect-AzureAD -Confirm:$false 
     Disconnect-ExchangeOnline -Confirm:$false
     Disconnect-SPOService
@@ -119,4 +129,28 @@ Write-Host -ForegroundColor Green "If there is more to do, do it now. `r`nIf you
     $TenantName = ""
 
     Exit
-#>
+}
+
+############ MENU ##############
+
+while (1 -eq 1) {
+    Write-Host -ForegroundColor Cyan "Please Choose what you whant to do:"
+    Write-Host -ForegroundColor Magenta "1 = Set all Schuwa-Standarts     2 = Disable RichTextFormat`n3 = Set all Mailboxes to DE      0 = Disconnect and Exit"
+    $choice = Read-Host -Prompt "Type a number and press enter"
+    if ($choice -eq 1) {
+        DisableRTF
+        DisableRelevantFunction
+    }
+    elseif ($choice -eq 2) {
+        DisableRTF
+    }
+    elseif ($choice -eq 3) {
+        Set-MailboxRegionalConfigurationDE
+    }
+    elseif ($choice -eq 0) {
+        Disconnect
+    }
+    else {
+        Write-Host -ForegroundColor Red "Invalid entry, please only enter the number infront of the preferred outcome `n Try again."
+    }
+}
