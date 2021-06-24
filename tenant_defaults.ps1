@@ -7,8 +7,6 @@
         Flag indicating whether or not the Azure AD application should be configured for preconsent.
 #>
 
-#test
-
 Param
 (
     #[Parameter(Mandatory = $true)]
