@@ -9,10 +9,6 @@
 
 Param
 (
-    #[Parameter(Mandatory = $true)]
-    #[switch]$ConfigurePreconsent,
-    #[Parameter(Mandatory = $true)]
-    #[string]$DisplayName,
     [Parameter(Mandatory = $false)]
     [string]$TenantName
 )
