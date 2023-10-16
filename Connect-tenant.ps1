@@ -98,7 +98,6 @@ function Disconnect-All {
     Disconnect-ExchangeOnline -Confirm:$false
     Disconnect-SPOService
     Disconnect-MicrosoftTeams
-    $TenantName = ""
 
     Exit
 }
